@@ -190,11 +190,49 @@ export default function App() {
     setStatusText("Establishing encrypted voice channel…");
     try {
       // Dynamic API URL for development and production
-      const apiBase = import.meta.env.VITE_API_URL || "";
-      const tokenResponse = await fetch(`${apiBase}/api/live-token`, { method: "POST" });
-      const tokenData = await tokenResponse.json();
+      const apiBase = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+      const tokenEndpoint = `${apiBase}/api/live-token`;
+
+      let tokenResponse;
+      try {
+        tokenResponse = await fetch(tokenEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+      } catch (networkErr) {
+        throw new Error(`Cannot connect to voice token service at ${tokenEndpoint}. (${networkErr.message || "Network error"})`);
+      }
+
+      let tokenData = null;
+      const contentType = tokenResponse.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        try {
+          tokenData = await tokenResponse.json();
+        } catch {
+          tokenData = null;
+        }
+      }
+
       if (!tokenResponse.ok) {
-        throw new Error(tokenData.error || "Could not obtain an ephemeral Live API token.");
+        let fallbackMessage = "";
+        if (!tokenData) {
+          try {
+            const rawText = await tokenResponse.text();
+            if (rawText && rawText.length < 250) {
+              fallbackMessage = rawText.trim();
+            }
+          } catch {}
+        }
+
+        const resolvedError =
+          tokenData?.error ||
+          fallbackMessage ||
+          `Voice token service returned HTTP ${tokenResponse.status} (${tokenResponse.statusText || "Error"}). Verify GEMINI_API_KEY is configured in your deployment environment variables.`;
+        throw new Error(resolvedError);
+      }
+
+      if (!tokenData || !tokenData.token) {
+        throw new Error("Invalid response format from live token service.");
       }
 
       const ai = new GoogleGenAI({ apiKey: tokenData.token, httpOptions: { apiVersion: "v1beta" } });

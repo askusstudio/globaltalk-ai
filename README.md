@@ -131,6 +131,20 @@ Open `http://localhost:8787` in your browser.
 
 ---
 
+## ⚡ Deploying to Vercel
+
+This repository includes native Vercel Serverless Functions in [`api/`](file:///c:/Users/anany/Downloads/GlobalTalk-AI-Antigravity-Starter/api) and a [`vercel.json`](file:///c:/Users/anany/Downloads/GlobalTalk-AI-Antigravity-Starter/vercel.json) rewrite configuration, allowing Vercel to host both the Vite frontend and the serverless Live API token backend simultaneously without an external Express server.
+
+### Step-by-Step Vercel Deployment:
+1. Push your repository to GitHub.
+2. In your [Vercel Dashboard](https://vercel.com/dashboard), import your repository `globaltalk-ai`.
+3. Under **Project Settings** → **Environment Variables**, add:
+   - **Key**: `GEMINI_API_KEY`
+   - **Value**: *(your Google Gemini API key)*
+4. Click **Deploy**. Vercel will build the frontend and deploy the serverless functions (`/api/live-token` and `/api/health`).
+
+---
+
 ## 🌐 Deploying to Render
 
 This project is pre-configured with a `render.yaml` Blueprint to run as a unified Web Service on Render (building the React app and serving it through Express).
