@@ -1,0 +1,1 @@
+The starter uses the root package.json dependencies. Start this server from the project root with `npm run server`.
